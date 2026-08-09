@@ -5,3 +5,8 @@ psycopg[binary]
 python-dotenv
 Flask-Limiter
 Werkzeug
+Flask-SocketIO
+python-socketio
+python-engineio
+simple-websocket
+
