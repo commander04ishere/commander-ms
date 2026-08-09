@@ -1,7 +1,0 @@
-Flask
-Flask-SQLAlchemy
-Flask-Migrate
-psycopg[binary]
-python-dotenv
-Flask-Limiter
-Werkzeug
