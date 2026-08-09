@@ -1,0 +1,2418 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Chat - Commander Messenger
+    </title>
+
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: #0b0b10;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* =========================
+           HEADER
+        ========================== */
+
+        .header {
+            height: 70px;
+            min-height: 70px;
+
+            display: flex;
+            align-items: center;
+
+            gap: 15px;
+            padding: 0 20px;
+
+            background: #111118;
+            border-bottom: 1px solid #282833;
+        }
+
+        .back {
+            width: 40px;
+            height: 40px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #aaa;
+            text-decoration: none;
+
+            font-size: 25px;
+            border-radius: 10px;
+        }
+
+        .back:hover {
+            color: white;
+            background: #20202a;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .profile-link {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+
+        .name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .username {
+            color: #777;
+            font-size: 13px;
+            margin-top: 3px;
+        }
+
+        .status {
+            color: #6ee7b7;
+            font-size: 11px;
+            margin-top: 3px;
+        }
+
+        /* =========================
+           SELECTION BAR
+        ========================== */
+
+        .selection-bar {
+            position: absolute;
+
+            top: 0;
+            left: 0;
+            right: 0;
+
+            height: 70px;
+
+            background: #181820;
+            border-bottom: 1px solid #343442;
+
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 18px;
+
+            z-index: 50;
+        }
+
+        .selection-bar.active {
+            display: flex;
+        }
+
+        .selection-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .cancel-select {
+            border: none;
+            background: transparent;
+
+            color: #aaa;
+
+            font-size: 25px;
+
+            cursor: pointer;
+        }
+
+        .selected-count {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .delete-selected {
+            border: none;
+
+            background: #ef4444;
+            color: white;
+
+            padding: 9px 15px;
+
+            border-radius: 8px;
+
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .delete-selected:hover {
+            background: #dc2626;
+        }
+
+        /* =========================
+           MESSAGES
+        ========================== */
+
+        .messages {
+            flex: 1;
+            min-height: 0;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            padding: 25px 20px;
+
+            display: flex;
+            flex-direction: column;
+
+            gap: 10px;
+        }
+
+        .messages::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        .messages::-webkit-scrollbar-track {
+            background: #0b0b10;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: #30303c;
+            border-radius: 10px;
+        }
+
+        /* =========================
+           MESSAGE WRAPPER
+        ========================== */
+
+        .message-wrapper {
+            position: relative;
+
+            display: flex;
+
+            width: 100%;
+
+            user-select: none;
+
+            transition: 0.12s;
+        }
+
+        .message-wrapper.mine {
+            justify-content: flex-end;
+        }
+
+        .message-wrapper.theirs {
+            justify-content: flex-start;
+        }
+
+        /* =========================
+           MESSAGE
+        ========================== */
+
+        .message {
+            position: relative;
+
+            max-width: min(70%, 600px);
+
+            padding: 10px 14px;
+
+            border-radius: 13px;
+
+            word-wrap: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .mine .message {
+            background: #8b5cf6;
+            border-bottom-right-radius: 4px;
+        }
+
+        .theirs .message {
+            background: #1b1b24;
+
+            border: 1px solid #2b2b36;
+
+            border-bottom-left-radius: 4px;
+        }
+
+        /* =========================
+           SELECTED
+        ========================== */
+
+        .message-wrapper.selected .message {
+            outline: 2px solid #b794ff;
+            outline-offset: 2px;
+
+            transform: scale(0.99);
+        }
+
+        .message-wrapper.selected::before {
+            content: "✓";
+
+            position: absolute;
+
+            width: 24px;
+            height: 24px;
+
+            border-radius: 50%;
+
+            background: #8b5cf6;
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 13px;
+            font-weight: bold;
+
+            z-index: 5;
+        }
+
+        .message-wrapper.mine.selected::before {
+            right: -8px;
+            top: -8px;
+        }
+
+        .message-wrapper.theirs.selected::before {
+            left: -8px;
+            top: -8px;
+        }
+
+        /* =========================
+           ACTIONS
+        ========================== */
+
+        .message-actions {
+            position: absolute;
+
+            top: -38px;
+            right: 0;
+
+            display: none;
+
+            padding: 4px;
+
+            background: #20202a;
+
+            border: 1px solid #343442;
+
+            border-radius: 8px;
+
+            z-index: 20;
+        }
+
+        .message-wrapper:hover .message-actions {
+            display: flex;
+        }
+
+        .message-action {
+            border: none;
+
+            background: transparent;
+
+            color: #ddd;
+
+            padding: 6px 9px;
+
+            cursor: pointer;
+
+            border-radius: 5px;
+
+            font-size: 12px;
+        }
+
+        .message-action:hover {
+            background: #30303c;
+        }
+
+        .message-action.delete {
+            color: #ff7070;
+        }
+
+        /* =========================
+           MESSAGE TEXT
+        ========================== */
+
+        .sender {
+            margin-bottom: 4px;
+
+            color: #b794ff;
+
+            font-size: 11px;
+
+            font-weight: bold;
+        }
+
+        .message-text {
+            white-space: pre-wrap;
+
+            line-height: 1.45;
+
+            font-size: 14px;
+        }
+
+        .time {
+            margin-top: 5px;
+
+            font-size: 10px;
+
+            opacity: 0.55;
+
+            text-align: right;
+        }
+
+        /* =========================
+           EMPTY
+        ========================== */
+
+        .empty {
+            flex: 1;
+
+            min-height: 100%;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            color: #555;
+
+            text-align: center;
+
+            line-height: 1.7;
+        }
+
+        /* =========================
+           COMPOSER
+        ========================== */
+
+        .composer {
+            position: relative;
+
+            min-height: 70px;
+
+            display: flex;
+            align-items: center;
+
+            gap: 8px;
+
+            padding: 12px 15px;
+
+            background: #111118;
+
+            border-top: 1px solid #282833;
+        }
+
+        .composer input {
+            flex: 1;
+
+            min-width: 0;
+
+            padding: 13px 15px;
+
+            border-radius: 10px;
+
+            border: 1px solid #30303c;
+
+            background: #181820;
+
+            color: white;
+
+            outline: none;
+
+            font-size: 14px;
+        }
+
+        .composer input:focus {
+            border-color: #8b5cf6;
+        }
+
+        .composer button.send-button {
+            padding: 13px 22px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background: #8b5cf6;
+
+            color: white;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .composer button.send-button:hover {
+            background: #7547df;
+        }
+
+        /* =========================
+           EMOJI BUTTON
+        ========================== */
+
+        .emoji-button {
+            width: 42px;
+            height: 42px;
+
+            flex-shrink: 0;
+
+            border: none;
+
+            background: transparent;
+
+            color: #888;
+
+            font-size: 25px;
+
+            cursor: pointer;
+
+            border-radius: 8px;
+        }
+
+        .emoji-button:hover {
+            color: white;
+
+            background: #20202a;
+        }
+
+        /* =========================
+           EMOJI PICKER
+        ========================== */
+
+        .emoji-picker {
+            position: absolute;
+
+            bottom: 72px;
+            left: 15px;
+
+            width: 340px;
+            max-width: calc(100vw - 30px);
+
+            height: 350px;
+
+            background: #17171f;
+
+            border: 1px solid #30303c;
+
+            border-radius: 14px;
+
+            display: none;
+
+            flex-direction: column;
+
+            overflow: hidden;
+
+            z-index: 100;
+        }
+
+        .emoji-picker.active {
+            display: flex;
+        }
+
+        .emoji-header {
+            padding: 10px;
+        }
+
+        .emoji-search {
+            width: 100%;
+
+            padding: 10px 12px;
+
+            border-radius: 9px;
+
+            border: 1px solid #30303c;
+
+            background: #0f0f15;
+
+            color: white;
+
+            outline: none;
+        }
+
+        .emoji-search:focus {
+            border-color: #8b5cf6;
+        }
+
+        .emoji-categories {
+            display: flex;
+
+            gap: 4px;
+
+            padding: 6px 8px;
+
+            overflow-x: auto;
+
+            border-top: 1px solid #292936;
+            border-bottom: 1px solid #292936;
+        }
+
+        .emoji-category {
+            border: none;
+
+            background: transparent;
+
+            color: #999;
+
+            min-width: 35px;
+            height: 32px;
+
+            border-radius: 7px;
+
+            cursor: pointer;
+
+            font-size: 18px;
+        }
+
+        .emoji-category:hover,
+        .emoji-category.active {
+            background: #292936;
+            color: white;
+        }
+
+        .emoji-grid {
+            flex: 1;
+
+            overflow-y: auto;
+
+            padding: 10px;
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(8, 1fr);
+
+            gap: 4px;
+
+            align-content: start;
+        }
+
+        .emoji-item {
+            border: none;
+
+            background: transparent;
+
+            color: white;
+
+            font-size: 23px;
+
+            width: 100%;
+            aspect-ratio: 1;
+
+            border-radius: 7px;
+
+            cursor: pointer;
+        }
+
+        .emoji-item:hover {
+            background: #292936;
+        }
+
+        /* =========================
+           CONNECTION
+        ========================== */
+
+        .connection {
+            position: fixed;
+
+            bottom: 85px;
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            padding: 8px 14px;
+
+            border-radius: 8px;
+
+            background: #20202a;
+
+            border: 1px solid #343442;
+
+            color: #aaa;
+
+            font-size: 12px;
+
+            display: none;
+
+            z-index: 200;
+        }
+
+        .connection.show {
+            display: block;
+        }
+
+        /* =========================
+           MOBILE
+        ========================== */
+
+        @media (max-width: 600px) {
+
+            .messages {
+                padding: 15px 10px;
+            }
+
+            .message {
+                max-width: 82%;
+            }
+
+            .composer {
+                min-height: 65px;
+                padding: 10px;
+            }
+
+            .composer button.send-button {
+                padding: 12px 16px;
+            }
+
+            .message-actions {
+                display: none !important;
+            }
+
+            .emoji-picker {
+                left: 8px;
+                bottom: 68px;
+
+                width: calc(100vw - 16px);
+
+                height: 330px;
+            }
+
+            .emoji-grid {
+                grid-template-columns:
+                    repeat(7, 1fr);
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+
+<!-- =========================
+     SELECTION BAR
+========================== -->
+
+<div
+    class="selection-bar"
+    id="selection-bar"
+>
+
+    <div class="selection-left">
+
+        <button
+            class="cancel-select"
+            id="cancel-select"
+            type="button"
+        >
+            ×
+        </button>
+
+        <span
+            class="selected-count"
+            id="selected-count"
+        >
+            0 selected
+        </span>
+
+    </div>
+
+    <button
+        class="delete-selected"
+        id="delete-selected"
+        type="button"
+    >
+        Delete
+    </button>
+
+</div>
+
+
+<!-- =========================
+     HEADER
+========================== -->
+
+<header class="header">
+
+    <a
+        class="back"
+        href="{{ url_for('messenger.dashboard') }}"
+    >
+        ←
+    </a>
+
+    <div class="user-info">
+
+        {% if other_user %}
+
+            <a
+                class="profile-link"
+                href="{{ url_for('profile.user_profile', user_id=other_user.id) }}"
+            >
+
+                <div class="name">
+                    {{ other_user.display_name }}
+                </div>
+
+                <div class="username">
+                    @{{ other_user.username }}
+                </div>
+
+                <div class="status">
+                    ● Online
+                </div>
+
+            </a>
+
+        {% else %}
+
+            <div class="name">
+                Private Chat
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</header>
+
+
+<!-- =========================
+     CONNECTION STATUS
+========================== -->
+
+<div
+    id="connection-status"
+    class="connection"
+>
+    Connecting...
+</div>
+
+
+<!-- =========================
+     MESSAGES
+========================== -->
+
+<main
+    class="messages"
+    id="messages"
+>
+
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div
+                class="message-wrapper {% if message.sender_id == user.id %}mine{% else %}theirs{% endif %}"
+                data-message-id="{{ message.id }}"
+                data-sender-id="{{ message.sender_id }}"
+            >
+
+                <div class="message">
+
+                    {% if message.sender_id != user.id %}
+
+                        <div class="sender">
+                            @{{ message.sender.username }}
+                        </div>
+
+                    {% endif %}
+
+                    <div class="message-text">
+                        {{ message.content }}
+                    </div>
+
+                    <div class="time">
+                        {{ message.created_at.strftime("%H:%M") }}
+                    </div>
+
+                    {% if message.sender_id == user.id %}
+
+                        <div class="message-actions">
+
+                            <button
+                                type="button"
+                                class="message-action delete"
+                                data-action="delete-one"
+                            >
+                                Delete
+                            </button>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <div
+            class="empty"
+            id="empty-message"
+        >
+
+            No messages yet.
+
+            <br>
+
+            Send the first message. 👋
+
+        </div>
+
+    {% endif %}
+
+</main>
+
+
+<!-- =========================
+     COMPOSER
+========================== -->
+
+<form
+    class="composer"
+    id="composer"
+>
+
+
+    <!-- EMOJI PICKER -->
+
+    <div
+        class="emoji-picker"
+        id="emoji-picker"
+    >
+
+        <div class="emoji-header">
+
+            <input
+                type="text"
+                class="emoji-search"
+                id="emoji-search"
+                placeholder="Search emoji..."
+                autocomplete="off"
+            >
+
+        </div>
+
+        <div
+            class="emoji-categories"
+            id="emoji-categories"
+        ></div>
+
+        <div
+            class="emoji-grid"
+            id="emoji-grid"
+        ></div>
+
+    </div>
+
+
+    <!-- EMOJI BUTTON -->
+
+    <button
+        type="button"
+        class="emoji-button"
+        id="emoji-button"
+        aria-label="Emoji"
+        title="Emoji"
+    >
+        ☺
+    </button>
+
+
+    <input
+        type="text"
+        id="message-input"
+        name="content"
+        placeholder="Type a message..."
+        maxlength="5000"
+        autocomplete="off"
+        required
+    >
+
+
+    <button
+        type="submit"
+        class="send-button"
+        id="send-button"
+    >
+        Send
+    </button>
+
+</form>
+
+
+<script>
+
+    /* =========================
+       DATA
+    ========================== */
+
+    const chatId =
+        {{ chat.id }};
+
+    const currentUserId =
+        {{ user.id }};
+
+
+    /* =========================
+       SOCKET
+    ========================== */
+
+    const socket = io();
+
+
+    /* =========================
+       ELEMENTS
+    ========================== */
+
+    const messagesContainer =
+        document.getElementById("messages");
+
+    const composer =
+        document.getElementById("composer");
+
+    const input =
+        document.getElementById("message-input");
+
+    const sendButton =
+        document.getElementById("send-button");
+
+    const selectionBar =
+        document.getElementById("selection-bar");
+
+    const selectedCount =
+        document.getElementById("selected-count");
+
+    const cancelSelect =
+        document.getElementById("cancel-select");
+
+    const deleteSelected =
+        document.getElementById("delete-selected");
+
+    const connectionStatus =
+        document.getElementById("connection-status");
+
+    const emojiButton =
+        document.getElementById("emoji-button");
+
+    const emojiPicker =
+        document.getElementById("emoji-picker");
+
+    const emojiSearch =
+        document.getElementById("emoji-search");
+
+    const emojiCategories =
+        document.getElementById("emoji-categories");
+
+    const emojiGrid =
+        document.getElementById("emoji-grid");
+
+
+    /* =========================
+       SELECTION
+    ========================== */
+
+    const selectedMessages = new Set();
+
+    let selectionMode = false;
+
+
+    /* =========================
+       SCROLL
+    ========================== */
+
+    function scrollToBottom() {
+
+        messagesContainer.scrollTop =
+            messagesContainer.scrollHeight;
+
+    }
+
+
+    window.addEventListener(
+        "load",
+        function () {
+
+            requestAnimationFrame(
+                function () {
+
+                    scrollToBottom();
+
+                }
+            );
+
+        }
+    );
+
+
+    /* =========================
+       SOCKET CONNECT
+    ========================== */
+
+    socket.on(
+        "connect",
+        function () {
+
+            connectionStatus.classList.remove(
+                "show"
+            );
+
+            socket.emit(
+                "join_chat",
+                {
+                    chat_id: chatId
+                }
+            );
+
+        }
+    );
+
+
+    socket.on(
+        "disconnect",
+        function () {
+
+            connectionStatus.textContent =
+                "Connection lost...";
+
+            connectionStatus.classList.add(
+                "show"
+            );
+
+        }
+    );
+
+
+    socket.on(
+        "joined_chat",
+        function () {
+
+            requestAnimationFrame(
+                scrollToBottom
+            );
+
+        }
+    );
+
+
+    socket.on(
+        "socket_error",
+        function (data) {
+
+            connectionStatus.textContent =
+                data.message ||
+                "Something went wrong.";
+
+            connectionStatus.classList.add(
+                "show"
+            );
+
+        }
+    );
+
+
+    /* =========================
+       NEW MESSAGE
+    ========================== */
+
+    socket.on(
+        "new_message",
+        function (message) {
+
+            addMessage(message);
+
+        }
+    );
+
+
+    /* =========================
+       ADD MESSAGE
+    ========================== */
+
+    function addMessage(message) {
+
+        const empty =
+            document.getElementById(
+                "empty-message"
+            );
+
+        if (empty) {
+            empty.remove();
+        }
+
+
+        /*
+         * Prevent duplicate messages.
+         */
+
+        if (
+            document.querySelector(
+                `[data-message-id="${message.id}"]`
+            )
+        ) {
+            return;
+        }
+
+
+        const wrapper =
+            document.createElement("div");
+
+        wrapper.className =
+            "message-wrapper";
+
+
+        wrapper.dataset.messageId =
+            message.id;
+
+        wrapper.dataset.senderId =
+            message.sender_id;
+
+
+        if (
+            Number(message.sender_id)
+            ===
+            Number(currentUserId)
+        ) {
+
+            wrapper.classList.add(
+                "mine"
+            );
+
+        } else {
+
+            wrapper.classList.add(
+                "theirs"
+            );
+
+        }
+
+
+        const messageElement =
+            document.createElement("div");
+
+        messageElement.className =
+            "message";
+
+
+        if (
+            Number(message.sender_id)
+            !==
+            Number(currentUserId)
+        ) {
+
+            const sender =
+                document.createElement("div");
+
+            sender.className =
+                "sender";
+
+            sender.textContent =
+                "@" +
+                (message.username || "user");
+
+            messageElement.appendChild(
+                sender
+            );
+
+        }
+
+
+        const text =
+            document.createElement("div");
+
+        text.className =
+            "message-text";
+
+        text.textContent =
+            message.content;
+
+        messageElement.appendChild(
+            text
+        );
+
+
+        const time =
+            document.createElement("div");
+
+        time.className =
+            "time";
+
+        time.textContent =
+            message.created_at || "";
+
+        messageElement.appendChild(
+            time
+        );
+
+
+        if (
+            Number(message.sender_id)
+            ===
+            Number(currentUserId)
+        ) {
+
+            const actions =
+                document.createElement("div");
+
+            actions.className =
+                "message-actions";
+
+
+            const button =
+                document.createElement("button");
+
+            button.type =
+                "button";
+
+            button.className =
+                "message-action delete";
+
+            button.dataset.action =
+                "delete-one";
+
+            button.textContent =
+                "Delete";
+
+
+            actions.appendChild(
+                button
+            );
+
+            messageElement.appendChild(
+                actions
+            );
+
+        }
+
+
+        wrapper.appendChild(
+            messageElement
+        );
+
+
+        messagesContainer.appendChild(
+            wrapper
+        );
+
+
+        requestAnimationFrame(
+            function () {
+
+                scrollToBottom();
+
+            }
+        );
+
+    }
+
+
+    /* =========================
+       SELECT MESSAGE
+    ========================== */
+
+    function selectMessage(wrapper) {
+
+        if (!wrapper) {
+            return;
+        }
+
+
+        /*
+         * Only our messages
+         * can be selected/deleted.
+         */
+
+        if (
+            Number(wrapper.dataset.senderId)
+            !==
+            Number(currentUserId)
+        ) {
+
+            return;
+
+        }
+
+
+        selectionMode = true;
+
+
+        const id =
+            Number(
+                wrapper.dataset.messageId
+            );
+
+
+        if (
+            selectedMessages.has(id)
+        ) {
+
+            selectedMessages.delete(id);
+
+            wrapper.classList.remove(
+                "selected"
+            );
+
+        } else {
+
+            selectedMessages.add(id);
+
+            wrapper.classList.add(
+                "selected"
+            );
+
+        }
+
+
+        updateSelectionUI();
+
+    }
+
+
+    /* =========================
+       SELECTION UI
+    ========================== */
+
+    function updateSelectionUI() {
+
+        const count =
+            selectedMessages.size;
+
+
+        selectedCount.textContent =
+            count + " selected";
+
+
+        if (count > 0) {
+
+            selectionBar.classList.add(
+                "active"
+            );
+
+        } else {
+
+            selectionBar.classList.remove(
+                "active"
+            );
+
+            selectionMode = false;
+
+        }
+
+    }
+
+
+    /* =========================
+       CLEAR SELECTION
+    ========================== */
+
+    function clearSelection() {
+
+        selectedMessages.clear();
+
+
+        document
+            .querySelectorAll(
+                ".message-wrapper.selected"
+            )
+            .forEach(
+                function (element) {
+
+                    element.classList.remove(
+                        "selected"
+                    );
+
+                }
+            );
+
+
+        updateSelectionUI();
+
+    }
+
+
+    cancelSelect.addEventListener(
+        "click",
+        function () {
+
+            clearSelection();
+
+        }
+    );
+
+
+    /* =========================
+       DELETE ONE
+    ========================== */
+
+    messagesContainer.addEventListener(
+        "click",
+        function (event) {
+
+            const deleteButton =
+                event.target.closest(
+                    '[data-action="delete-one"]'
+                );
+
+
+            if (!deleteButton) {
+                return;
+            }
+
+
+            const wrapper =
+                deleteButton.closest(
+                    ".message-wrapper"
+                );
+
+
+            if (!wrapper) {
+                return;
+            }
+
+
+            event.preventDefault();
+            event.stopPropagation();
+
+
+            const id =
+                Number(
+                    wrapper.dataset.messageId
+                );
+
+
+            if (
+                !confirm(
+                    "Delete this message?"
+                )
+            ) {
+                return;
+            }
+
+
+            socket.emit(
+                "delete_messages",
+                {
+                    chat_id: chatId,
+                    message_ids: [id]
+                }
+            );
+
+        }
+    );
+
+
+    /* =========================
+       CLICK MESSAGE
+    ========================== */
+
+    messagesContainer.addEventListener(
+        "click",
+        function (event) {
+
+            const wrapper =
+                event.target.closest(
+                    ".message-wrapper"
+                );
+
+
+            if (!wrapper) {
+                return;
+            }
+
+
+            if (
+                event.target.closest(
+                    ".message-actions"
+                )
+            ) {
+                return;
+            }
+
+
+            if (selectionMode) {
+
+                selectMessage(
+                    wrapper
+                );
+
+            }
+
+        }
+    );
+
+
+    /* =========================
+       SWIPE RIGHT
+    ========================== */
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+
+    messagesContainer.addEventListener(
+        "touchstart",
+        function (event) {
+
+            if (
+                event.touches.length !== 1
+            ) {
+                return;
+            }
+
+
+            touchStartX =
+                event.touches[0].clientX;
+
+            touchStartY =
+                event.touches[0].clientY;
+
+        },
+        {
+            passive: true
+        }
+    );
+
+
+    messagesContainer.addEventListener(
+        "touchend",
+        function (event) {
+
+            if (
+                event.changedTouches.length !== 1
+            ) {
+                return;
+            }
+
+
+            const wrapper =
+                event.target.closest(
+                    ".message-wrapper"
+                );
+
+
+            if (!wrapper) {
+                return;
+            }
+
+
+            const endX =
+                event.changedTouches[0].clientX;
+
+            const endY =
+                event.changedTouches[0].clientY;
+
+
+            const deltaX =
+                endX - touchStartX;
+
+            const deltaY =
+                Math.abs(
+                    endY - touchStartY
+                );
+
+
+            if (
+                deltaX > 70
+                &&
+                deltaY < 80
+            ) {
+
+                selectMessage(
+                    wrapper
+                );
+
+            }
+
+        },
+        {
+            passive: true
+        }
+    );
+
+
+    /* =========================
+       LONG PRESS
+    ========================== */
+
+    let longPressTimer = null;
+
+
+    messagesContainer.addEventListener(
+        "touchstart",
+        function (event) {
+
+            const wrapper =
+                event.target.closest(
+                    ".message-wrapper"
+                );
+
+
+            if (!wrapper) {
+                return;
+            }
+
+
+            clearTimeout(
+                longPressTimer
+            );
+
+
+            longPressTimer =
+                setTimeout(
+                    function () {
+
+                        selectMessage(
+                            wrapper
+                        );
+
+                    },
+                    600
+                );
+
+        },
+        {
+            passive: true
+        }
+    );
+
+
+    messagesContainer.addEventListener(
+        "touchend",
+        function () {
+
+            clearTimeout(
+                longPressTimer
+            );
+
+        },
+        {
+            passive: true
+        }
+    );
+
+
+    messagesContainer.addEventListener(
+        "touchmove",
+        function () {
+
+            clearTimeout(
+                longPressTimer
+            );
+
+        },
+        {
+            passive: true
+        }
+    );
+
+
+    /* =========================
+       DELETE SELECTED
+    ========================== */
+
+    deleteSelected.addEventListener(
+        "click",
+        function () {
+
+            const ids =
+                Array.from(
+                    selectedMessages
+                );
+
+
+            if (!ids.length) {
+                return;
+            }
+
+
+            if (
+                !confirm(
+                    "Delete " +
+                    ids.length +
+                    " message(s)?"
+                )
+            ) {
+                return;
+            }
+
+
+            socket.emit(
+                "delete_messages",
+                {
+                    chat_id: chatId,
+                    message_ids: ids
+                }
+            );
+
+        }
+    );
+
+
+    /* =========================
+       RECEIVE DELETION
+    ========================== */
+
+    socket.on(
+        "messages_deleted",
+        function (data) {
+
+            const ids =
+                new Set(
+                    (data.message_ids || [])
+                        .map(Number)
+                );
+
+
+            document
+                .querySelectorAll(
+                    ".message-wrapper"
+                )
+                .forEach(
+                    function (wrapper) {
+
+                        const id =
+                            Number(
+                                wrapper.dataset.messageId
+                            );
+
+
+                        if (
+                            ids.has(id)
+                        ) {
+
+                            wrapper.remove();
+
+                        }
+
+                    }
+                );
+
+
+            (data.message_ids || [])
+                .forEach(
+                    function (id) {
+
+                        selectedMessages.delete(
+                            Number(id)
+                        );
+
+                    }
+                );
+
+
+            updateSelectionUI();
+
+
+            if (
+                !messagesContainer.querySelector(
+                    ".message-wrapper"
+                )
+            ) {
+
+                const empty =
+                    document.createElement(
+                        "div"
+                    );
+
+                empty.className =
+                    "empty";
+
+                empty.id =
+                    "empty-message";
+
+                empty.innerHTML =
+                    "No messages yet.<br>Send the first message. 👋";
+
+                messagesContainer.appendChild(
+                    empty
+                );
+
+            }
+
+        }
+    );
+
+
+    /* =========================
+       SEND MESSAGE
+    ========================== */
+
+    composer.addEventListener(
+        "submit",
+        function (event) {
+
+            event.preventDefault();
+
+
+            const content =
+                input.value.trim();
+
+
+            if (!content) {
+                return;
+            }
+
+
+            if (!socket.connected) {
+
+                connectionStatus.textContent =
+                    "Not connected.";
+
+                connectionStatus.classList.add(
+                    "show"
+                );
+
+                return;
+
+            }
+
+
+            sendButton.disabled =
+                true;
+
+
+            socket.emit(
+                "send_message",
+                {
+                    chat_id: chatId,
+                    content: content
+                }
+            );
+
+
+            input.value = "";
+
+
+            input.focus();
+
+
+            setTimeout(
+                function () {
+
+                    sendButton.disabled =
+                        false;
+
+                },
+                100
+            );
+
+        }
+    );
+
+
+    /* =========================
+       EMOJI DATA
+    ========================== */
+
+    const emojiData = {
+
+        smileys: {
+            icon: "😀",
+
+            emojis: [
+                "😀","😃","😄","😁","😆","😅",
+                "😂","🤣","😊","😇","🙂","🙃",
+                "😉","😌","😍","🥰","😘","😗",
+                "😙","😚","😋","😛","😝","😜",
+                "🤪","🤨","🧐","🤓","😎","🤩",
+                "🥳","😏","😒","😞","😔","😟",
+                "😕","🙁","☹️","😣","😖","😫",
+                "😩","🥺","😢","😭","😤","😠",
+                "😡","🤬","🤯","😳","🥵","🥶",
+                "😱","😨","😰","😥","😓","🤗",
+                "🤔","🤭","🤫","🤥","😶","😐",
+                "😑","😬","🙄","😯","😦","😧",
+                "😮","😲","🥱","😴","🤤","😪",
+                "😵","🤐","🥴","🤢","🤮","🤧",
+                "😷","🤒","🤕","🤑","🤠","😈",
+                "👿","👹","👺","🤡","💩","👻",
+                "💀","☠️","👽","👾","🤖","🎃"
+            ]
+        },
+
+        people: {
+            icon: "❤️",
+
+            emojis: [
+                "❤️","🧡","💛","💚","💙","💜",
+                "🖤","🤍","🤎","💔","❣️","💕",
+                "💞","💓","💗","💖","💘","💝",
+                "💟","💌","💋","💯","👋","🤚",
+                "🖐️","✋","🖖","👌","🤏","✌️",
+                "🤞","🤟","🤘","🤙","👈","👉",
+                "👆","👇","☝️","✍️","👏","🙌",
+                "👐","🤝","🙏","💪","🫶","👀",
+                "🧠","👶","🧒","👦","👧","🧑",
+                "👨","👩","🧔","👴","👵"
+            ]
+        },
+
+        animals: {
+            icon: "🐶",
+
+            emojis: [
+                "🐶","🐱","🐭","🐹","🐰","🦊",
+                "🐻","🐼","🐨","🐯","🦁","🐮",
+                "🐷","🐸","🐵","🙈","🙉","🙊",
+                "🐒","🐔","🐧","🐦","🐤","🦆",
+                "🦅","🦉","🐺","🐗","🐴","🦄",
+                "🐝","🐛","🦋","🐌","🐞","🐜",
+                "🕷️","🐢","🐍","🦎","🦖","🦕",
+                "🐙","🦑","🦀","🐠","🐟","🐡",
+                "🐬","🐳","🦈","🐊","🐘","🦏"
+            ]
+        },
+
+        food: {
+            icon: "🍔",
+
+            emojis: [
+                "🍏","🍎","🍐","🍊","🍋","🍌",
+                "🍉","🍇","🍓","🫐","🍈","🍒",
+                "🍑","🥭","🍍","🥥","🥝","🍅",
+                "🥑","🍆","🥔","🥕","🌽","🌶️",
+                "🥒","🥬","🥦","🧄","🧅","🍞",
+                "🥐","🥖","🧀","🥚","🍳","🥞",
+                "🧇","🥓","🥩","🍗","🍔","🍟",
+                "🍕","🌭","🌮","🌯","🥗","🍿",
+                "🍩","🍪","🎂","🍰","🍫","🍭",
+                "☕","🧃","🥤","🧋"
+            ]
+        },
+
+        activities: {
+            icon: "⚽",
+
+            emojis: [
+                "⚽","🏀","🏈","⚾","🥎","🎾",
+                "🏐","🏉","🥏","🎱","🏓","🏸",
+                "🏒","🏑","🥍","🏏","⛳","🏹",
+                "🎣","🥊","🥋","🎽","🛹","🛷",
+                "⛸️","🎿","🏋️","🤸","🤼","🤾",
+                "🏌️","🏇","🧘","🏄","🏊","🤽",
+                "🚴","🚵","🧗","🎮","🎲","🎯",
+                "🎳","🎨","🎭","🎤","🎧","🎼"
+            ]
+        },
+
+        travel: {
+            icon: "🚗",
+
+            emojis: [
+                "🚗","🚕","🚙","🚌","🚎","🏎️",
+                "🚓","🚑","🚒","🚐","🛻","🚚",
+                "🚛","🚜","🛵","🏍️","🚲","✈️",
+                "🚀","🛸","🚁","🚢","⛵","🚤",
+                "🗺️","🗿","🗽","🗼","🏰","🏯",
+                "🏠","🏢","🏥","🏦","🏫","🏪",
+                "🌍","🌎","🌏","🌙","☀️","⭐",
+                "🌈","🔥","❄️","🌊","🌲","🌴"
+            ]
+        },
+
+        objects: {
+            icon: "💡",
+
+            emojis: [
+                "⌚","📱","💻","⌨️","🖥️","🖨️",
+                "📷","📸","🎥","📺","📻","🎙️",
+                "☎️","📞","💡","🔦","💰","💎",
+                "🔑","🔒","🔓","🔨","🔧","⚙️",
+                "🧰","🔪","🛡️","🎁","🎈","🎉",
+                "📚","📖","✏️","📝","📌","📎",
+                "📁","📂","🗑️","💾","💿","📀"
+            ]
+        },
+
+        symbols: {
+            icon: "🔣",
+
+            emojis: [
+                "❤️","🧡","💛","💚","💙","💜",
+                "☑️","✔️","❌","❗","❓","‼️",
+                "⁉️","⭕","🚫","💯","♻️","⚠️",
+                "🔴","🟠","🟡","🟢","🔵","🟣",
+                "⚫","⚪","🟤","⭐","✨","💫",
+                "💥","💦","💨","🎵","🎶","🔔",
+                "🔕","🔇","🔊","🔒","🔓","🔑"
+            ]
+        }
+
+    };
+
+
+    let currentEmojiCategory =
+        "smileys";
+
+
+    /* =========================
+       EMOJI CATEGORIES
+    ========================== */
+
+    function renderEmojiCategories() {
+
+        emojiCategories.innerHTML = "";
+
+
+        Object.entries(
+            emojiData
+        ).forEach(
+            function ([key, category]) {
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+                button.type =
+                    "button";
+
+                button.className =
+                    "emoji-category";
+
+
+                if (
+                    key ===
+                    currentEmojiCategory
+                ) {
+
+                    button.classList.add(
+                        "active"
+                    );
+
+                }
+
+
+                button.textContent =
+                    category.icon;
+
+
+                button.title =
+                    key;
+
+
+                button.addEventListener(
+                    "click",
+                    function () {
+
+                        currentEmojiCategory =
+                            key;
+
+                        emojiSearch.value =
+                            "";
+
+                        renderEmojiCategories();
+
+                        renderEmojiGrid();
+
+                    }
+                );
+
+
+                emojiCategories.appendChild(
+                    button
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================
+       EMOJI GRID
+    ========================== */
+
+    function renderEmojiGrid() {
+
+        emojiGrid.innerHTML = "";
+
+
+        const search =
+            emojiSearch.value
+                .trim()
+                .toLowerCase();
+
+
+        let emojis =
+            emojiData[
+                currentEmojiCategory
+            ].emojis;
+
+
+        /*
+         * Emoji-only local search.
+         *
+         * Since emojis themselves do not
+         * have searchable names here,
+         * an empty search shows the category.
+         *
+         * This avoids the previous
+         * "search does nothing" feeling
+         * and keeps the picker reliable.
+         */
+
+        if (search) {
+
+            emojis =
+                Object.values(
+                    emojiData
+                )
+                .flatMap(
+                    category =>
+                        category.emojis
+                );
+
+        }
+
+
+        emojis.forEach(
+            function (emoji) {
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+                button.type =
+                    "button";
+
+                button.className =
+                    "emoji-item";
+
+                button.textContent =
+                    emoji;
+
+
+                button.addEventListener(
+                    "click",
+                    function () {
+
+                        insertEmoji(
+                            emoji
+                        );
+
+                    }
+                );
+
+
+                emojiGrid.appendChild(
+                    button
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================
+       INSERT EMOJI
+    ========================== */
+
+    function insertEmoji(emoji) {
+
+        const start =
+            input.selectionStart;
+
+        const end =
+            input.selectionEnd;
+
+
+        const value =
+            input.value;
+
+
+        input.value =
+            value.substring(
+                0,
+                start
+            )
+            +
+            emoji
+            +
+            value.substring(
+                end
+            );
+
+
+        const cursor =
+            start +
+            emoji.length;
+
+
+        input.focus();
+
+        input.setSelectionRange(
+            cursor,
+            cursor
+        );
+
+    }
+
+
+    /* =========================
+       EMOJI BUTTON
+    ========================== */
+
+    emojiButton.addEventListener(
+        "click",
+        function (event) {
+
+            event.stopPropagation();
+
+            emojiPicker.classList.toggle(
+                "active"
+            );
+
+
+            if (
+                emojiPicker.classList.contains(
+                    "active"
+                )
+            ) {
+
+                renderEmojiCategories();
+
+                renderEmojiGrid();
+
+            }
+
+        }
+    );
+
+
+    /* =========================
+       EMOJI SEARCH
+    ========================== */
+
+    emojiSearch.addEventListener(
+        "input",
+        function () {
+
+            renderEmojiGrid();
+
+        }
+    );
+
+
+    /* =========================
+       CLOSE EMOJI PICKER
+    ========================== */
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                !emojiPicker.contains(
+                    event.target
+                )
+                &&
+                event.target !==
+                emojiButton
+            ) {
+
+                emojiPicker.classList.remove(
+                    "active"
+                );
+
+            }
+
+        }
+    );
+
+
+    /* =========================
+       ESCAPE
+    ========================== */
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.key === "Escape"
+            ) {
+
+                emojiPicker.classList.remove(
+                    "active"
+                );
+
+            }
+
+        }
+    );
+
+
+    /* =========================
+       ENTER
+    ========================== */
+
+    input.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.key === "Enter"
+                &&
+                !event.shiftKey
+            ) {
+
+                event.preventDefault();
+
+                composer.requestSubmit();
+
+            }
+
+        }
+    );
+
+
+    /* =========================
+       INITIAL
+    ========================== */
+
+    renderEmojiCategories();
+
+    renderEmojiGrid();
+
+    input.focus();
+
+</script>
+
+</body>
+
+</html>

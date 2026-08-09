@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Login - Commander Messenger</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            background: #0f0f14;
+            color: white;
+
+            font-family: Arial, sans-serif;
+        }
+
+        .login-box {
+            width: 380px;
+            padding: 35px;
+
+            background: #181820;
+
+            border: 1px solid #292936;
+            border-radius: 16px;
+
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.45);
+        }
+
+        h1 {
+            margin: 0 0 8px;
+
+            text-align: center;
+        }
+
+        .subtitle {
+            margin-bottom: 28px;
+
+            text-align: center;
+
+            color: #999;
+        }
+
+        label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        input {
+            width: 100%;
+
+            padding: 12px;
+            margin-bottom: 18px;
+
+            border: 1px solid #30303c;
+            border-radius: 9px;
+
+            background: #101017;
+            color: white;
+
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #8b5cf6;
+        }
+
+        button {
+            width: 100%;
+
+            padding: 13px;
+
+            border: 0;
+            border-radius: 9px;
+
+            background: #8b5cf6;
+            color: white;
+
+            font-size: 15px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #7547df;
+        }
+
+        .message {
+            padding: 10px;
+            margin-bottom: 18px;
+
+            border-radius: 8px;
+
+            background: #252530;
+            color: #ddd;
+
+            font-size: 14px;
+        }
+
+        .register-link {
+            margin-top: 20px;
+
+            text-align: center;
+
+            color: #999;
+        }
+
+        .register-link a {
+            color: #b794ff;
+
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-box">
+
+        <h1>Commander</h1>
+
+        <div class="subtitle">
+            Welcome back 👋
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+
+            {% if messages %}
+
+                {% for message in messages %}
+
+                    <div class="message">
+                        {{ message }}
+                    </div>
+
+                {% endfor %}
+
+            {% endif %}
+
+        {% endwith %}
+
+        <form method="POST">
+
+            <label>
+                Username
+            </label>
+
+            <input
+                type="text"
+                name="username"
+                required
+                autocomplete="username"
+            >
+
+            <label>
+                Password
+            </label>
+
+            <input
+                type="password"
+                name="password"
+                required
+                autocomplete="current-password"
+            >
+
+            <button type="submit">
+                Login
+            </button>
+
+        </form>
+
+        <div class="register-link">
+
+            Don't have an account?
+
+            <a href="{{ url_for('auth.register') }}">
+                Create one
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
