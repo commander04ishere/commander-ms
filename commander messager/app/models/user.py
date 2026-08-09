@@ -68,6 +68,12 @@ class User(db.Model):
         nullable=False
     )
 
+    is_verified = db.Column(
+    db.Boolean,
+    default=False,
+    nullable=False
+    )
+
     chat_memberships = db.relationship(
         "ChatMember",
         back_populates="user",
