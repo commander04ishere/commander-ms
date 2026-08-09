@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Profile - Commander Messenger
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+
+            min-height: 100vh;
+
+            background: #0b0b10;
+
+            color: white;
+
+            font-family: Arial, sans-serif;
+        }
+
+        .navbar {
+
+            height: 64px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 0 25px;
+
+            background: #111118;
+
+            border-bottom: 1px solid #292936;
+        }
+
+        .logo {
+
+            color: white;
+
+            text-decoration: none;
+
+            font-weight: bold;
+
+            font-size: 19px;
+        }
+
+        .logo span {
+            color: #8b5cf6;
+        }
+
+        .nav {
+
+            display: flex;
+
+            gap: 8px;
+
+        }
+
+        .nav a {
+
+            padding: 9px 13px;
+
+            border-radius: 8px;
+
+            color: #aaa;
+
+            text-decoration: none;
+
+            background: #181820;
+
+        }
+
+        .nav a:hover {
+
+            color: white;
+
+            background: #252530;
+
+        }
+
+        .container {
+
+            width: 100%;
+
+            max-width: 700px;
+
+            margin: 45px auto;
+
+            padding: 0 20px;
+
+        }
+
+        .profile-card {
+
+            background: #111118;
+
+            border: 1px solid #292936;
+
+            border-radius: 18px;
+
+            overflow: hidden;
+
+        }
+
+        .cover {
+
+            height: 130px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #17121f,
+                    #241b35
+                );
+
+        }
+
+        .profile-content {
+
+            padding: 0 30px 30px;
+
+        }
+
+        .avatar-wrapper {
+
+            margin-top: -55px;
+
+            width: 110px;
+
+            height: 110px;
+
+            border-radius: 50%;
+
+            border: 5px solid #111118;
+
+            background: #252530;
+
+            overflow: hidden;
+
+        }
+
+        .avatar {
+
+            width: 100%;
+
+            height: 100%;
+
+            object-fit: cover;
+
+        }
+
+        .avatar-placeholder {
+
+            width: 100%;
+
+            height: 100%;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 40px;
+
+            font-weight: bold;
+
+            color: #b794ff;
+
+            background: #211b2d;
+
+        }
+
+        .name {
+
+            margin-top: 18px;
+
+            font-size: 25px;
+
+            font-weight: bold;
+
+        }
+
+        .username {
+
+            margin-top: 5px;
+
+            color: #a78bfa;
+
+            font-size: 14px;
+
+        }
+
+        .bio {
+
+            margin-top: 20px;
+
+            padding: 16px;
+
+            border-radius: 12px;
+
+            background: #181820;
+
+            color: #bbb;
+
+            line-height: 1.6;
+
+            white-space: pre-wrap;
+
+        }
+
+        .stats {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 12px;
+
+            margin-top: 15px;
+
+        }
+
+        .stat {
+
+            padding: 15px;
+
+            background: #181820;
+
+            border: 1px solid #292936;
+
+            border-radius: 12px;
+
+        }
+
+        .stat-title {
+
+            color: #777;
+
+            font-size: 12px;
+
+            margin-bottom: 6px;
+
+        }
+
+        .stat-value {
+
+            font-size: 14px;
+
+        }
+
+        .actions {
+
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 20px;
+
+        }
+
+        .button {
+
+            flex: 1;
+
+            padding: 12px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            text-align: center;
+
+            text-decoration: none;
+
+            cursor: pointer;
+
+            font-weight: bold;
+
+        }
+
+        .primary {
+
+            background: #8b5cf6;
+
+            color: white;
+
+        }
+
+        .primary:hover {
+
+            background: #7547df;
+
+        }
+
+        .secondary {
+
+            background: #24242f;
+
+            color: white;
+
+        }
+
+        .secondary:hover {
+
+            background: #30303c;
+
+        }
+
+        .flash {
+
+            padding: 12px 15px;
+
+            margin-bottom: 15px;
+
+            border-radius: 10px;
+
+            background: #181820;
+
+            border: 1px solid #30303c;
+
+            color: #ddd;
+
+        }
+
+        @media (max-width: 600px) {
+
+            .navbar {
+
+                padding: 0 12px;
+
+            }
+
+            .nav a {
+
+                padding: 8px;
+
+                font-size: 12px;
+
+            }
+
+            .container {
+
+                margin-top: 25px;
+
+                padding: 0 10px;
+
+            }
+
+            .profile-content {
+
+                padding: 0 18px 22px;
+
+            }
+
+            .stats {
+
+                grid-template-columns: 1fr;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<nav class="navbar">
+
+    <a
+        class="logo"
+        href="{{ url_for('messenger.dashboard') }}"
+    >
+
+        Commander
+        <span>Messenger</span>
+
+    </a>
+
+
+    <div class="nav">
+
+        <a
+            href="{{ url_for('messenger.dashboard') }}"
+        >
+            Dashboard
+        </a>
+
+        <a
+            href="{{ url_for('messenger.dashboard') }}"
+        >
+            Messages
+        </a>
+
+    </div>
+
+</nav>
+
+
+<main class="container">
+
+
+    {% with messages = get_flashed_messages() %}
+
+        {% for message in messages %}
+
+            <div class="flash">
+
+                {{ message }}
+
+            </div>
+
+        {% endfor %}
+
+    {% endwith %}
+
+
+    <section class="profile-card">
+
+
+        <div class="cover"></div>
+
+
+        <div class="profile-content">
+
+
+            <div class="avatar-wrapper">
+
+                {% set shown_user =
+                    profile_user
+                    if profile_user
+                    else user
+                %}
+
+
+                {% if shown_user.avatar %}
+
+                    <img
+                        class="avatar"
+                        src="{{ url_for('static', filename=shown_user.avatar) }}"
+                        alt="Profile picture"
+                    >
+
+                {% else %}
+
+                    <div class="avatar-placeholder">
+
+                        {{ shown_user.display_name[0]|upper }}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="name">
+
+                {{ shown_user.display_name }}
+
+            </div>
+
+
+            <div class="username">
+
+                @{{ shown_user.username }}
+
+            </div>
+
+
+            {% if shown_user.bio %}
+
+                <div class="bio">
+
+                    {{ shown_user.bio }}
+
+                </div>
+
+            {% else %}
+
+                <div class="bio">
+
+                    No bio yet.
+
+                </div>
+
+            {% endif %}
+
+
+            <div class="stats">
+
+
+                <div class="stat">
+
+                    <div class="stat-title">
+
+                        Account ID
+
+                    </div>
+
+                    <div class="stat-value">
+
+                        {{ shown_user.id }}
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div class="stat-title">
+
+                        Joined
+
+                    </div>
+
+                    <div class="stat-value">
+
+                        {{ shown_user.created_at.strftime("%Y-%m-%d") }}
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="actions">
+
+
+                {% if is_own_profile %}
+
+                    <a
+                        class="button primary"
+                        href="{{ url_for('profile.edit_profile') }}"
+                    >
+
+                        Edit Profile
+
+                    </a>
+
+                {% else %}
+
+                    <a
+                        class="button primary"
+                        href="{{ url_for('messenger.start_chat', user_id=shown_user.id) }}"
+                    >
+
+                        Message
+
+                    </a>
+
+                {% endif %}
+
+
+                <a
+                    class="button secondary"
+                    href="{{ url_for('messenger.dashboard') }}"
+                >
+
+                    Dashboard
+
+                </a>
+
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+</main>
+
+
+</body>
+
+</html>

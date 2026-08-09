@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Search - Commander Messenger</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+
+            min-height: 100vh;
+
+            background: #0b0b10;
+
+            color: white;
+
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 700px;
+
+            margin: 0 auto;
+
+            padding: 40px 20px;
+        }
+
+        .back {
+            display: inline-block;
+
+            margin-bottom: 30px;
+
+            color: #999;
+
+            text-decoration: none;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+        }
+
+        .result {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 17px;
+
+            margin-bottom: 10px;
+
+            background: #121219;
+
+            border: 1px solid #282833;
+
+            border-radius: 11px;
+        }
+
+        .username {
+            color: #aaa;
+
+            margin-top: 5px;
+
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 17px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: #8b5cf6;
+
+            color: white;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .empty {
+            padding: 30px;
+
+            text-align: center;
+
+            color: #777;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <main class="container">
+
+        <a
+            class="back"
+            href="{{ url_for('messenger.dashboard') }}"
+        >
+            ← Back
+        </a>
+
+
+        <h1>
+            Search Results
+        </h1>
+
+
+        {% if users %}
+
+            {% for found_user in users %}
+
+                <div class="result">
+
+                    <div>
+
+                        <strong>
+                            {{ found_user.display_name }}
+                        </strong>
+
+                        <div class="username">
+                            @{{ found_user.username }}
+                        </div>
+
+                    </div>
+
+
+                    <form
+                        method="POST"
+                        action="{{
+                            url_for(
+                                'messenger.start_chat',
+                                user_id=found_user.id
+                            )
+                        }}"
+                    >
+
+                        <button type="submit">
+                            Message
+                        </button>
+
+                    </form>
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="empty">
+
+                No users found for
+                <strong>{{ query }}</strong>.
+
+            </div>
+
+        {% endif %}
+
+    </main>
+
+</body>
+
+</html>

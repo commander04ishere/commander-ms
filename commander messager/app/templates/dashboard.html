@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Dashboard - Commander Messenger
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            min-height: 100vh;
+
+            background: #0b0b10;
+
+            color: white;
+
+            font-family: Arial, sans-serif;
+
+        }
+
+
+        /* =========================
+           NAVBAR
+        ========================== */
+
+        .navbar {
+
+            height: 64px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 0 25px;
+
+            background: #111118;
+
+            border-bottom: 1px solid #292936;
+
+        }
+
+
+        .logo {
+
+            color: white;
+
+            text-decoration: none;
+
+            font-size: 20px;
+
+            font-weight: bold;
+
+        }
+
+
+        .logo span {
+
+            color: #8b5cf6;
+
+        }
+
+
+        .logout {
+
+            padding: 9px 15px;
+
+            border-radius: 8px;
+
+            background: #252530;
+
+            color: white;
+
+            text-decoration: none;
+
+        }
+
+
+        .logout:hover {
+
+            background: #30303c;
+
+        }
+
+
+        /* =========================
+           CONTAINER
+        ========================== */
+
+        .container {
+
+            width: 100%;
+
+            max-width: 1000px;
+
+            margin: 40px auto;
+
+            padding: 0 20px;
+
+        }
+
+
+        /* =========================
+           WELCOME
+        ========================== */
+
+        .welcome {
+
+            padding: 30px;
+
+            background: #111118;
+
+            border: 1px solid #292936;
+
+            border-radius: 18px;
+
+        }
+
+
+        .welcome h1 {
+
+            margin-top: 0;
+
+        }
+
+
+        .username {
+
+            color: #b794ff;
+
+        }
+
+
+        /* =========================
+           GRID
+        ========================== */
+
+        .grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(220px, 1fr)
+                );
+
+            gap: 15px;
+
+            margin-top: 20px;
+
+        }
+
+
+        /* =========================
+           CARDS
+        ========================== */
+
+        .card {
+
+            display: block;
+
+            padding: 22px;
+
+            background: #111118;
+
+            border: 1px solid #292936;
+
+            border-radius: 14px;
+
+            color: white;
+
+            text-decoration: none;
+
+            transition: 0.15s;
+
+        }
+
+
+        .card:hover {
+
+            transform: translateY(-2px);
+
+            background: #181820;
+
+            border-color: #8b5cf6;
+
+        }
+
+
+        .icon {
+
+            font-size: 28px;
+
+            margin-bottom: 12px;
+
+        }
+
+
+        .title {
+
+            font-size: 17px;
+
+            font-weight: bold;
+
+        }
+
+
+        .description {
+
+            margin-top: 7px;
+
+            color: #777;
+
+            font-size: 13px;
+
+            line-height: 1.5;
+
+        }
+
+
+        /* =========================
+           PROFILE CARD
+        ========================== */
+
+        .profile-card {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 15px;
+
+            margin-top: 20px;
+
+            padding: 20px;
+
+            border-radius: 14px;
+
+            background: #111118;
+
+            border: 1px solid #292936;
+
+            color: white;
+
+            text-decoration: none;
+
+        }
+
+
+        .profile-card:hover {
+
+            background: #181820;
+
+            border-color: #8b5cf6;
+
+        }
+
+
+        .avatar {
+
+            width: 55px;
+
+            height: 55px;
+
+            border-radius: 50%;
+
+            overflow: hidden;
+
+            background: #211b2d;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            color: #b794ff;
+
+            font-size: 20px;
+
+            font-weight: bold;
+
+            flex-shrink: 0;
+
+        }
+
+
+        .avatar img {
+
+            width: 100%;
+
+            height: 100%;
+
+            object-fit: cover;
+
+        }
+
+
+        .profile-name {
+
+            font-weight: bold;
+
+        }
+
+
+        .profile-username {
+
+            color: #8b5cf6;
+
+            font-size: 13px;
+
+            margin-top: 4px;
+
+        }
+
+
+        /* =========================
+           MOBILE
+        ========================== */
+
+        @media (max-width: 600px) {
+
+            .navbar {
+
+                padding: 0 12px;
+
+            }
+
+
+            .container {
+
+                margin-top: 25px;
+
+                padding: 0 10px;
+
+            }
+
+
+            .welcome {
+
+                padding: 22px;
+
+            }
+
+
+            .grid {
+
+                grid-template-columns: 1fr;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================
+         NAVBAR
+    ========================== -->
+
+    <nav class="navbar">
+
+
+        <!--
+            IMPORTANT:
+            This is the MAIN dashboard.
+            Do NOT use messenger.dashboard here.
+        -->
+
+        <a
+            class="logo"
+            href="/dashboard"
+        >
+
+            Commander
+            <span>Messenger</span>
+
+        </a>
+
+
+        <a
+            class="logout"
+            href="{{ url_for('auth.logout') }}"
+        >
+
+            Logout
+
+        </a>
+
+
+    </nav>
+
+
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <main class="container">
+
+
+        <!-- =========================
+             WELCOME
+        ========================== -->
+
+        <section class="welcome">
+
+
+            <h1>
+
+                Welcome,
+
+                <span class="username">
+
+                    {{ user.display_name }}
+
+                </span>
+
+                👋
+
+            </h1>
+
+
+            <p>
+
+                Your Commander Messenger dashboard.
+
+            </p>
+
+
+        </section>
+
+
+
+        <!-- =========================
+             PROFILE
+        ========================== -->
+
+        <a
+            class="profile-card"
+            href="{{ url_for('profile.my_profile') }}"
+        >
+
+
+            <div class="avatar">
+
+
+                {% if user.avatar %}
+
+                    <img
+                        src="{{ url_for('static', filename=user.avatar) }}"
+                        alt="Avatar"
+                    >
+
+                {% else %}
+
+                    {{ user.display_name[0]|upper }}
+
+                {% endif %}
+
+
+            </div>
+
+
+            <div>
+
+
+                <div class="profile-name">
+
+                    {{ user.display_name }}
+
+                </div>
+
+
+                <div class="profile-username">
+
+                    @{{ user.username }}
+
+                </div>
+
+
+            </div>
+
+
+        </a>
+
+
+
+        <!-- =========================
+             MAIN NAVIGATION
+        ========================== -->
+
+        <div class="grid">
+
+
+            <!-- =========================
+                 MAIN DASHBOARD
+            ========================== -->
+
+            <a
+                class="card"
+                href="/dashboard"
+            >
+
+                <div class="icon">
+
+                    🏠
+
+                </div>
+
+
+                <div class="title">
+
+                    Dashboard
+
+                </div>
+
+
+                <div class="description">
+
+                    Go to your main dashboard.
+
+                </div>
+
+            </a>
+
+
+
+            <!-- =========================
+                 MESSAGES
+            ========================== -->
+
+            <a
+                class="card"
+                href="{{ url_for('messenger.dashboard') }}"
+            >
+
+                <div class="icon">
+
+                    💬
+
+                </div>
+
+
+                <div class="title">
+
+                    Messages
+
+                </div>
+
+
+                <div class="description">
+
+                    Open your conversations and messages.
+
+                </div>
+
+            </a>
+
+
+
+            <!-- =========================
+                 MY PROFILE
+            ========================== -->
+
+            <a
+                class="card"
+                href="{{ url_for('profile.my_profile') }}"
+            >
+
+                <div class="icon">
+
+                    👤
+
+                </div>
+
+
+                <div class="title">
+
+                    My Profile
+
+                </div>
+
+
+                <div class="description">
+
+                    View your profile, bio and account information.
+
+                </div>
+
+            </a>
+
+
+
+            <!-- =========================
+                 EDIT PROFILE
+            ========================== -->
+
+            <a
+                class="card"
+                href="{{ url_for('profile.edit_profile') }}"
+            >
+
+                <div class="icon">
+
+                    ⚙️
+
+                </div>
+
+
+                <div class="title">
+
+                    Edit Profile
+
+                </div>
+
+
+                <div class="description">
+
+                    Change your name, username, bio and avatar.
+
+                </div>
+
+            </a>
+
+
+        </div>
+
+
+    </main>
+
+
+</body>
+
+</html>
