@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_socketio import SocketIO
+
 from app.routes.main import main_bp
 
 
@@ -62,6 +63,18 @@ def create_app():
     from app.models.message import Message
 
     # =================================
+    # CREATE DATABASE TABLES
+    # =================================
+
+    with app.app_context():
+
+        print("Creating database tables...")
+
+        db.create_all()
+
+        print("Database tables created!")
+
+    # =================================
     # ROUTES
     # =================================
 
@@ -80,7 +93,7 @@ def create_app():
     app.register_blueprint(
         profile_bp
     )
-    
+
     app.register_blueprint(
         main_bp
     )
