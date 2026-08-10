@@ -779,7 +779,15 @@
             >
 
                 <div class="name">
-                    {{ other_user.display_name }}
+    {{ other_user.display_name }}
+
+    {% if other_user.username == "commander04" %}
+        <img
+            src="{{ url_for('static', filename='images/verified.png') }}"
+            class="verified-badge"
+            alt="Verified"
+        >
+    {% endif %}
                 </div>
 
                 <div class="username">
